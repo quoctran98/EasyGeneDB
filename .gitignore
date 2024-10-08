@@ -1,0 +1,5 @@
+.env
+/server/data/
+/hg38_from_ncbi/
+**/__pycache__/
+*.DS_Store

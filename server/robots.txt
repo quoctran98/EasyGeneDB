@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /random/*
+Disallow: /api/*
+
+Sitemap: http://www.easygenomebrowser.com/sitemap.xml

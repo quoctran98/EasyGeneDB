@@ -1,0 +1,67 @@
+.table .text-right {text-align: right}
+.table .text-left {text-align: left}
+.table .text-center {text-align: center}
+
+.gene-map {
+    padding: 0rem
+}
+
+.exon {
+    position: relative;
+    fill: #F96900;
+}
+
+.exon:hover {
+  fill: #e0965d;
+}
+
+.cds {
+    fill: #279fb2;
+}
+
+.cds:hover {
+  fill: #65DEF1;
+}
+
+.inline-image {
+    height: 1em;
+}
+
+.btn-primary {
+    background-color: #F96900;
+    border-color: #F96900;
+}
+
+.btn-primary:hover {
+    background-color: #e0965d;
+    border-color: #e0965d;
+}
+
+.btn-secondary {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+
+}
+
+.btn-secondary:hover {
+    background-color: #A8DCD1;
+    border-color: #A8DCD1;
+}
+
+.btn:disabled {
+    background-color: #DCE2C8;
+    border-color: #DCE2C8;
+}
+
+.bi-clipboard {
+    color: #000000;
+}
+
+.sequence-box {
+    font-family: monospace;
+    white-space: pre;
+    overflow-x: auto;
+    padding: 0.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+}

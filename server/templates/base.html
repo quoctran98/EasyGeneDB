@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap Icons, CSS, and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}"" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-grid.min.css')}}"" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-reboot.min.css')}}"" />
+    <!-- <script src="{{ url_for('static', filename='js/jquery-3.2.1.slim.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js.map')}}"></script> -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}"" />
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+
+    <!-- Main Script (for global functions) -->
+    <script src="{{ url_for('static', filename='js/main.js')}}"></script>
+    
+    <!-- Add custom OpenGraph (and Twitter) content -->
+    {% if custom_og %}
+        <meta property="og:title" content="{{ custom_og['title'] }}" />
+        <meta name="twitter:title" content="{{ custom_og['title'] }}" />
+    {% else %}
+        <meta property="og:title" content="Wiki Wall Street" />
+        <meta name="twitter:title" content="Wiki Wall Street" />
+    {% endif %}
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@quoctran98" />
+
+    <meta property="og:description" content="The stock market game but for Wikipedia articles! Join a game and predict trends in article popularity!" />
+    <meta name="twitter:description" content="The stock market game but for Wikipedia articles! Join a game and predict trends in article popularity!" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://wiki-wall-street.com" />
+
+    <meta property="og:image:url" content="{{ url_for('static', filename='img/favicon.png') }}" />
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/favicon.png') }}" />
+
+
+    <title>Easy Genome Browser 🧬</title>
+
+</head>
+
+<body>
+    <div class="gets-blurred">
+
+    <!-- PADDING ROW -->
+    <div class="row"><div class="col-md-12"><br></div></div>
+
+    <!-- HEADER -->
+    <div class="row">
+
+        <div class="col-md-2"></div>
+
+        <div class="col-md-6 align-self-center">
+
+            <!-- TITLE -->
+            <a href="{{ url_for('main.index') }}" style="all: unset;">
+                <h2 class="title" style="float: left;">
+                    <img src="{{ url_for('static', filename='img/wordmark.png') }}" alt="EASYGENOMEBROWSER.COM Wordmark" style="max-height: 2em; max-width: 90vw;">
+                </h2>
+            </a>
+
+        </div>
+
+        <div class="col-md-4 align-self-center">
+        <div class="row">
+
+            <!-- SEARCH BAR -->
+            <form action="{{ url_for('main.index') }}" method="post" style="float: right;">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" placeholder="Search for a gene..." aria-label="Search for a gene..." aria-describedby="search-button">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit" id="search-button"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+            </form>
+
+            <div style="float: left; width: 0.5em;"></div>
+
+            <!-- RANDOM GENE BUTTON -->
+            <a href="{{ url_for('main.random_gene', genome_name='hg38') }}" style="float: right;">
+                <button type="button" class="btn btn-primary" style="margin-left: 10px;"><i class="bi bi-dice-6"></i></button>
+            </a>
+
+        </div>
+        </div>
+
+     </div>
+    </div>
+
+    <hr>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="container has-text-centered">
+                <div class="alert {{ category }}" role="alert">
+                    {{ message }}
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    </div>
+
+    <!-- CONTENT INSERTED BY DIFFERENT PAGES -->
+    <div>
+        <div class="container has-text-centered">
+            {% block content %}
+            {% endblock %}
+    </div>
+</body>
+
+<footer>
+    <br>
+    <hr>
+    <div class="row gets-blurred">
+        <div class="col-md-12">
+            <p class="text-center" style="font-size:medium;">
+                <a href="https://wikimediafoundation.org/support/" target="_blank" rel="noopener noreferrer"><img class="inline-image" src="{{ url_for('static', filename='img/Wikimedia-logo.png')}}"></img> Donate to the Wikimedia Foundation!</a>
+                <br>
+                <a href="https://github.com/quoctran98/Wiki-Wall-Street" target="_blank" rel="noopener noreferrer"><img class="inline-image" src="{{ url_for('static', filename='img/GitHub-Mark-32px.png')}}"></img> Github</a>
+                <a href="https://twitter.com/quoctran98" target="_blank" rel="noopener noreferrer"><img class="inline-image" src="{{ url_for('static', filename='img/Twitter-Icon.png')}}"></img> Twitter</a>
+                <a href="https://ko-fi.com/quoctran98" target="_blank" rel="noopener noreferrer"><img class="inline-image" src="{{ url_for('static', filename='img/Ko-fi-logo.png')}}"></img> Ko-fi</a>
+                <br>
+                QUO© 2024
+                - 
+                <a href="https://github.com/quoctran98/Wiki-Wall-Street/issues" target="_blank" rel="noopener noreferrer">Report Issues</a>
+                -
+                <a href="#" target="_blank" rel="noopener noreferrer">Contact Me</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+</html>

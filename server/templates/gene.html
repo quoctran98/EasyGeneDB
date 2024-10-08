@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- HIDDEN DIV TO PASS DATA TO JAVASCRIPT -->
+<div id="gene-data" style="display: none;">
+    {{ serialize_json(gene.summary_dict) | safe }}
+</div>
+<div id="transcripts-list" style="display: none;">
+    {{ serialize_json(transcripts) | safe }}
+</div>
+
+<!-- GENE NAME -->
+<div class="row">
+    <h3><b>{{ gene.name }}</b> ({{ gene.symbol }})</h3>
+</div>
+
+<!-- GENE SUMMARY -->
+<div class="row">
+    <p>This is a {{ gene.type }} gene</p>
+</div>
+
+<hr>
+
+<!-- BIG TRANSCRIPTS LIST -->
+<div class="row">    
+    <div class="col-md-6">
+        <p id="transcript-count">{{ gene.symbol }} encodes <b>{{ transcripts|length }} transcripts</b></p>
+
+        <!-- CHECKBOXES -->
+        <div class="input-group" id="transcript-filter-checkboxes">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="non-refseq" name="non-refseq" checked>
+                <label class="form-check-label" for="non-refseq">Include non-RefSeq transcripts</label>
+            </div>
+            <div class="form-check form-check-inline" hidden>
+                <input class="form-check-input" type="checkbox" id="predicted" name="predicted" checked>
+                <label class="form-check-label" for="predicted">Include predicted transcripts</label>
+            </div>
+        </div>
+
+        <!-- DROPDOWN MENU -->
+        <div class="input-group">
+            <select class="form-control" name="all-transcripts" id="all-transcripts">
+                {% for transcript in transcripts %}
+                    <option value="{{ transcript.ncbi_accession }}">{{ transcript.product }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- TRANSCRIPT INFORMATION TABLE -->
+    <div class="col-md-4">
+        <table class="table table-sm text-left" id="transcript-info-table" style="border-top:none">
+            <tbody>
+                <tr><td>NCBI Accession</td><td></td></tr>
+                <tr><td>Annotation Source</td><td></td></tr>
+                <tr><td>Curation Status</td><td></td></tr>
+                <tr><td>Transcript Bioype</td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<hr>
+
+<!-- GENOMIC CONTEXT / GENE MAP -->
+<div class="row">
+    <p>The 5' end of {{ gene.symbol }} starts at <b>position {{ format_number(gene.locus[2] if gene.locus[1]=='plus' else gene.locus[3]) }} </b>
+         on the <b>{{ gene.locus[1] }} strand</b> of <b>chromosome {{ gene.locus[0] }}</b></p>
+</div>
+<div class="row">
+    <div id="gene-map" justify-content="center"></div>
+</div>
+
+<hr>
+
+<!-- DNA SEQUENCE -->
+<div class="row">
+    <div class="col-md-8">
+    <div class="input-group sequence-box" style="display:flex;" id="dna-sequence-div">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Genomic DNA Sequence</span>
+        </div>
+        <input type="text" id="dna-sequence" readonly="true" style="flex:1" value="{{ gene.sequence }}" maxlength="2147483647">
+        <button class="btn btn-secondary" onclick="copy_link(event, 'dna-sequence');"><i class="bi-clipboard"></i></button>
+    </div>
+    </div> 
+</div>
+
+<!-- PRE-RNA SEQUENCE -->
+<div class="row">
+    <div class="col-md-8">
+    <div class="input-group sequence-box" style="display:flex;" id="pre-rna-sequence-div">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Full preRNA Transcript</span>
+        </div>
+        <input type="text" id="pre-rna-sequence" readonly="true" style="flex:1" value="" maxlength="2147483647">
+        <button class="btn btn-secondary" onclick="copy_link(event, 'pre-rna-sequence');"><i class="bi-clipboard"></i></button>
+    </div>
+    </div>  
+</div>
+
+<!-- SPLICED RNA SEQUENCE -->
+ <div class="row">
+    <div class="col-md-8">
+    <div class="input-group sequence-box" style="display:flex;" id="spliced-rna-sequence-div">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Spliced RNA Sequence</span>
+        </div>
+        <input type="text" id="spliced-rna-sequence" readonly="true" style="flex:1" value="" maxlength="2147483647">
+        <button class="btn btn-secondary" onclick="copy_link(event, 'spliced-rna-sequence');"><i class="bi-clipboard"></i></button>
+    </div>
+    </div>
+</div>
+
+<!-- CODING RNA SEQUENCE -->
+<div class="row">
+    <div class="col-md-8">
+    <div class="input-group sequence-box" style="display:flex;" id="coding-rna-sequence-div">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Coding RNA Sequence</span>
+        </div>
+        <input type="text" id="coding-rna-sequence" readonly="true" style="flex:1" value="" maxlength="2147483647">
+        <button class="btn btn-secondary" onclick="copy_link(event, 'coding-rna-sequence');"><i class="bi-clipboard"></i></button>
+    </div>
+    </div>
+</div>
+
+<!-- PROTEIN SEQUENCE -->
+<div class="row">
+    <div class="col-md-8">
+    <div class="input-group sequence-box" style="display:flex;" id="protein-sequence-div">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Protein Sequence</span>
+        </div>
+        <input type="text" id="protein-sequence" readonly="true" style="flex:1" value="" maxlength="2147483647">
+        <button class="btn btn-secondary" onclick="copy_link(event, 'protein-sequence');"><i class="bi-clipboard"></i></button>
+    </div>
+    </div>
+</div>
+
+<hr>
+
+<!-- LINKS TO OTHER GENOME BROWSERS -->
+<div class="row">
+    <p>View this gene in other genome browsers:</p>
+    <a href="https://www.ncbi.nlm.nih.gov/gene/{{ gene.ncbi_gene_id }}" target="_blank">&emsp;NCBI Gene</a>
+</div>
+
+<script src="{{ url_for('static', filename='js/browse_gene.js') }}"></script>
+
+
+{% endblock %}

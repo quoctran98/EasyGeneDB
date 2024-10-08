@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="gets-blurred">
+
+<div class="alert alert-success" role="alert">
+  Hi, thanks for using Easy Genome Browser!
+  You can open an issue on <a href="https://github.com/quoctran98/Wiki-Wall-Street" target="_blank" rel="noopener noreferrer">GitHub</a> 
+  or contact me.  - Quoc 
+</div>
+
+<!-- BIG SEARCH BAR -->
+<div class="input-group mb-3">
+  <input type="text" class="form-control" placeholder="Search for a gene..." aria-label="Search for a gene..." aria-describedby="search-button">
+  <button class="btn btn-outline-secondary" type="button" id="search-button">Search</button>
+</div>
+
+<hr>
+
+<!-- GAME EXPLANATION -->
+<div class="alert alert-info" style="color: black;">
+  <a data-toggle="collapse" href="#game-explainer" style="color: inherit; text-decoration: inherit;">
+    <h2>What is this game?</h2>
+  </a>
+
+  <div id="game-explainer" class="collapse show inner-collapse">
+  </div>
+</div>
+
+</div>
+
+{% endblock %}
