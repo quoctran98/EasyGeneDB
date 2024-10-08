@@ -3,22 +3,22 @@ const GENE_MAP = "gene-map";
 const SEQUENCES_LIST = "sequences-list";
 
 const TRANSCRIPT_COUNT = "transcript-count";
-const TRANSCRIPT_FILTERS = "transcript-filter-checkboxes";
+const ALLOW_NON_REFSEQ = "non-refseq";
 const ALL_TRANSCRIPTS = "all-transcripts";
 const TRANSCRIPT_INFO_TABLE = "transcript-info-table";
 
-const DNA_SEQ_DIV = "dna-sequence-div";
-const PRE_RNA_SEQ_DIV = "pre-rna-sequence-div";
-const SPLICED_RNA_SEQ_DIV = "spliced-rna-sequence-div";
-const CODING_RNA_SEQ_DIV = "coding-rna-sequence-div";
-const PROTEIN_SEQ_DIV = "protein-sequence-div";
+const DNA_SEQ_DIV = "dna-sequence";
+const PRE_RNA_SEQ_DIV = "pre-rna-sequence";
+const SPLICED_RNA_SEQ_DIV = "spliced-rna-sequence";
+const CODING_RNA_SEQ_DIV = "coding-rna-sequence";
+const PROTEIN_SEQ_DIV = "protein-sequence";
 
-const DNA_SEQ = "dna-sequence";
-const PRE_RNA_SEQ = "pre-rna-sequence";
-const SPLICED_RNA_SEQ = "spliced-rna-sequence";
-const CODING_RNA_SEQ = "coding-rna-sequence";
-const PROTEIN_SEQ = "protein-sequence";
+// Pre-written tooltips for stuff
+const REFSEQ_TOOLTIP = "RefSeq is a curated database of non-redundant of genomic, transcriptomic, and proteomic sequences run by the NCBI.";
+const GNOMON_TOOLTIP = "Gnomon is the NCBI's gene prediction tool for eukaryotic genomes.";
+const OTHER_SOURCE_TOOLTIP = "This transcript was not annotated by NCBI's RefSeq or Gnomon.";
 
+// Pre-drawn shapes for the TSS and terminator (and the SVG namespace)
 const SVGNS = "http://www.w3.org/2000/svg";
 const POLYLINE_TSS_SHAPE = "0,1, 0,0.1, 0.5,0.1, 0.4,0.2 0.55,0.1 0.4,0"
 const INVERTED_POLYLINE_TSS_SHAPE = "0.5,0 0.5,0.9 0.05,0.9 0.1,0.8 0,0.9 0.1,1"
@@ -82,14 +82,28 @@ async function draw_gene_map(gene_data, normalized_annotations, strand) {
     let exons = normalized_annotations.exons;
     for (let exon of exons) {
         let exon_rect = document.createElementNS(SVGNS, "rect");
+
+        // Calculate and set the tooltip for the exon
+        let exon_tooltip = `Exon ${"plus" ? exons.indexOf(exon)+1 : exons.length - exons.indexOf(exon)}`;
+        const gene_length = gene_data.locus[3] - gene_data.locus[2];
+        let unormalized_exon_bounds = [Math.round(exon[0] * gene_length), Math.round(exon[1] * gene_length)];
+        if (gene_data.locus[1] === "minus") { // We have to do weird math to get the bounds right
+            unormalized_exon_bounds = [unormalized_exon_bounds[1] - gene_length, unormalized_exon_bounds[0] - gene_length];
+        }
+        exon_tooltip += `\n(${format_big_number(unormalized_exon_bounds[0])} → ${format_big_number(unormalized_exon_bounds[1])})`;
+
+        // Set all the attributes of the exon rectangle
         set_many_attributes(exon_rect, {
             "class": "exon",
-            "data-exon-name": `Exon ${exons.indexOf(exon)+1}`,
+            "data-toggle": "tooltip",
+            "data-placement": "plus" ? "top" : "bottom",
+            "title": exon_tooltip,
             "x": max_width * exon[0],
             "y": strand == "plus" ? max_height/4 : max_height/2,
             "width": max_width * (exon[1] - exon[0]),
             "height": max_height/4,
         });
+        $(exon_rect).tooltip(); // Enable the tooltip!
         svg_div.append(exon_rect);
     }
 
@@ -109,6 +123,14 @@ async function draw_gene_map(gene_data, normalized_annotations, strand) {
             "width": max_width * (CDS[1] - CDS[0]),
             "height": max_height/4,
             "fill": "#FF7B9C",
+        });
+        // This SHOULD allow the underlying exon tooltip to show up and for :hover to work
+        // Hover doesn't show up but whatever...
+        $(CDS_rect).on("mouseover", function() {
+            $(this).tooltip("show");
+        });
+        $(CDS_rect).on("mouseout", function() {
+            $(this).tooltip("hide");
         });
         svg_div.append(CDS_rect);
     }
@@ -261,6 +283,22 @@ async function load_transcript(transcript_id) {
                 // It's nice to log the transcript data for debugging :)
                 console.log(transcript_data);
 
+                // Format the biotype
+                let formatted_biotype = transcript_data.biotype.replace("_", " ");
+                if (formatted_biotype.includes("transcript")) { // More clear than just "transcript"
+                    formatted_biotype = "non-coding " + formatted_biotype;
+                }
+
+                // Add tooltips to the source field
+                let formatted_source = transcript_data.source;
+                if (transcript_data.source === "BestRefSeq" || transcript_data.source === "RefSeq") {
+                    formatted_source = `<a href="https://www.ncbi.nlm.nih.gov/refseq/" target="_blank" data-toggle="tooltip" data-placement="top" title="${REFSEQ_TOOLTIP}">${formatted_source}</a>`;
+                } else if (transcript_data.source === "Gnomon") {
+                    formatted_source = `<a href="https://www.ncbi.nlm.nih.gov/refseq/annotation_euk/gnomon/" target="_blank" data-toggle="tooltip" data-placement="top" title="${GNOMON_TOOLTIP}">${formatted_source}</a>`;  
+                } else {
+                    formatted_source = `<a href="#" data-toggle="tooltip" data-placement="top" title="${OTHER_SOURCE_TOOLTIP}">${formatted_source}</a>`;
+                }
+
                 // Update the transcript info table
                 $(`#${TRANSCRIPT_INFO_TABLE}`).empty();
                 $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
@@ -273,21 +311,25 @@ async function load_transcript(transcript_id) {
                 $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
                     <tr>
                         <td>Annotation Source</td>
-                        <td>${transcript_data.source}</td>
+                        <td>${formatted_source}</td>
                     </tr>
                 `);
+                // I don't think we need this anymore because we explain it in the source field
+                // $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
+                //     <tr>
+                //         <td>Curation Status</td>
+                //         <td>${transcript_data.ncbi_accession.startsWith("N") ? "Curated" : "Predicted"}</td>
+                //     </tr>
+                // `);
                 $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
                     <tr>
-                        <td>Curation Status</td>
-                        <td>${transcript_data.ncbi_accession.startsWith("N") ? "Curated" : "Predicted"}</td>
+                        <td>Transcript Type</td>
+                        <td>${formatted_biotype}</td>
                     </tr>
                 `);
-                $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
-                    <tr>
-                        <td>Transcript Biotype</td>
-                        <td>${transcript_data.biotype.replace("_", " ")}</td>
-                    </tr>
-                `);
+
+                // Remember to enable the tooltips after we add the elements
+                $('[data-toggle="tooltip"]').tooltip();
 
                 // Normalize the annotations and draw the gene map
                 const normalized_annotations = reindex_transcript_annotations(gene_data, transcript_data, true);
@@ -295,28 +337,21 @@ async function load_transcript(transcript_id) {
                 $(`#${GENE_MAP}`).empty();
                 draw_gene_map(gene_data, normalized_annotations, strand=gene_data.locus[1]);
 
-                // Fill the sequences field with the transcript data
-                $("#pre-rna-sequence")[0].setAttribute("value", transcript_data.sequence);
-                if (transcript_data.exonic_sequence === null) {
-                    $("#spliced-rna-sequence")[0].setAttribute("value", "Not Available");
-                    $("#spliced-rna-sequence-div").children().prop("disabled", true);
-                } else {
-                    $("#spliced-rna-sequence")[0].setAttribute("value", transcript_data.exonic_sequence);
-                    $("#spliced-rna-sequence-div").children().prop("disabled", false);
-                }
-                if (transcript_data.coding_sequence === null) {
-                    $("#coding-rna-sequence")[0].setAttribute("value", "Not Available");
-                    $("#coding-rna-sequence-div").children().prop("disabled", true);
-                } else {
-                    $("#coding-rna-sequence")[0].setAttribute("value", transcript_data.coding_sequence);
-                    $("#coding-rna-sequence-div").children().prop("disabled", false);
-                }
-                if (transcript_data.amino_acid_sequence === null) {
-                    $("#protein-sequence")[0].setAttribute("value", "Not Available");
-                    $("#protein-sequence-div").children().prop("disabled", true);
-                } else {
-                    $("#protein-sequence")[0].setAttribute("value", transcript_data.amino_acid_sequence);
-                    $("#protein-sequence-div").children().prop("disabled", false);
+                // Fill the sequences field with the transcript data (DNA should be prefilled and static)
+                const sequence_divs = [PRE_RNA_SEQ_DIV, SPLICED_RNA_SEQ_DIV, CODING_RNA_SEQ_DIV, PROTEIN_SEQ_DIV];
+                const corresponding_seqs = [transcript_data.sequence, transcript_data.exonic_sequence, transcript_data.coding_sequence, transcript_data.amino_acid_sequence];
+                for (let div of sequence_divs) {
+                    const corresponding_sequence = corresponding_seqs[sequence_divs.indexOf(div)];
+                    if (corresponding_sequence === null) {
+                        // If no sequence, disable the div and remove the sequence
+                        $(`#${div} #seq`)[0].setAttribute("value", "Not Available");
+                        $(`#${div}`).children().prop("disabled", true);
+                    } else {
+                        // Otherwise, fill in the sequence and length, and enable the div
+                        $(`#${div} #seq`)[0].setAttribute("value", corresponding_sequence);
+                        $(`#${div} #seq-length`)[0].textContent = `${format_big_number(corresponding_sequence.length)} ${div === PROTEIN_SEQ_DIV ? "aa" : "nt"}`;
+                        $(`#${div}`).children().prop("disabled", false);
+                    }
                 }
             }
         });
@@ -324,13 +359,11 @@ async function load_transcript(transcript_id) {
 
 // Function to update the transcript list based on the checkboxes (and on document load)
 function update_transcript_list(gene_data, transcripts, force_main_variant=false) {
-    let include_non_refseq = $(`#${TRANSCRIPT_FILTERS} #non-refseq`).prop("checked");
-    let include_predicted = $(`#${TRANSCRIPT_FILTERS} #predicted`).prop("checked");
+    let include_non_refseq = $(`#${ALLOW_NON_REFSEQ}`).prop("checked");
 
     // Filter the transcripts based on the checkboxes
     let filtered_transcripts = transcripts.filter(transcript => {
-        return (include_non_refseq || transcript.source === "BestRefSeq") &&
-               (include_predicted || transcript.ncbi_accession.startsWith("N"));
+        return (include_non_refseq || transcript.source === "BestRefSeq" || transcript.source === "RefSeq");
     });
 
     // Update the all transcripts dropdown
@@ -369,8 +402,8 @@ $(document).ready(function() {
     const gene_data = JSON.parse($("#gene-data").text());
     const transcripts = JSON.parse($("#transcripts-list").text());
 
-    // Add an event listener to the checkboxes in the transcript filters
-    $(`#${TRANSCRIPT_FILTERS}`).find("input[type='checkbox']").change(function() {
+    // Add an event listener to the non-RefSeq checkbox
+    $(`#${ALLOW_NON_REFSEQ}`).change(function() {
         update_transcript_list(gene_data, transcripts, force_main_variant=false);
     });
     
@@ -380,7 +413,15 @@ $(document).ready(function() {
         load_transcript(transcript_id);
     });
 
-    // Update the transcript list on document load (to preselect the first transcript)
+    // Disable the non-RefSeq checkbox if there are no non-RefSeq transcripts
+    // I worry that doing this might be confusing without telling the user why... (maybe a tooltip?)
+    const non_refseq_transcripts = transcripts.filter(transcript => transcript.source !== "BestRefSeq" && transcript.source !== "RefSeq");
+    if (non_refseq_transcripts.length === 0) {
+        $(`#${ALLOW_NON_REFSEQ}`).prop("disabled", true);
+        $(`#${ALLOW_NON_REFSEQ}`).prop("checked", false);
+    }
+
+    // Finally, update the transcript list on document load (to preselect the first transcript)
     // Then load whichever transcript is selected by default
     update_transcript_list(gene_data, transcripts, force_main_variant=true);
     load_transcript($(`#${ALL_TRANSCRIPTS}`).val());

@@ -10,15 +10,14 @@
     position: relative;
     fill: #F96900;
 }
-
 .exon:hover {
   fill: #e0965d;
 }
 
 .cds {
     fill: #279fb2;
+    pointer-events: none; /* This will disable hover but allow exon tooltips */
 }
-
 .cds:hover {
   fill: #65DEF1;
 }

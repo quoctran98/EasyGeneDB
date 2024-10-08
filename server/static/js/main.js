@@ -3,22 +3,28 @@
     Use it to define functions that are used in multiple pages.
 */
 
-// Function to copy content of a div by pressing a button
-function copy_link(event, inputId) {
-    let inputField = document.getElementById(inputId);
-    let tooltip = document.getElementById('dna-sequence-tooltip');
-    navigator.clipboard.writeText(inputField.value)
-        .then(() => {
-            // Show the tooltip
-            tooltip.style.display = 'block';
-            // Position the tooltip near the button
-            tooltip.style.left = event.clientX + 'px'; // Position it near the mouse click
-            tooltip.style.top = (event.clientY + 20) + 'px'; // Adjust as needed
+// Initialize some stuff :)
+$(document).ready(function() {
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+});
 
-            // Hide the tooltip after 2 seconds
+// Function to copy the sequence child of a parent div to the clipboard
+function copy_sequence(event, parent_div_id) {
+    let sequence_div = $(`#${parent_div_id} #seq`)[0];
+    navigator.clipboard.writeText(sequence_div.value)
+        .then(() => {
+            // Set and show the tooltip (make sure it stays even after mouseout)
+            $(event.target).attr("data-original-title", "Copied!");
+            $(event.target).attr("data-placement", "left");
+            $(event.target).tooltip("show");
+            // Reset the tooltip after 1 second
             setTimeout(() => {
-                tooltip.style.display = 'none';
-            }, 2000);
+                $(event.target).attr("data-original-title", "");
+                $(event.target).tooltip("hide");
+            }, 1000);
+    
         })
         .catch(err => {
             console.error('Could not copy text: ', err);
