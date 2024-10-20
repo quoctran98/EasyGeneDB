@@ -2,7 +2,7 @@ from flask import Flask
 from datetime import datetime, timezone
 import pytz, json
 
-from server.helper import settings, format_number, count_things
+from server.helper import settings, format_number, count_things, get_unique_gene_types
 # from server.helper import settings, cache_config, cache, scheduler
 from server.models import Genome
 # from server.tasks import 
@@ -18,6 +18,7 @@ def create_app():
     app.jinja_env.globals.update(format_number=format_number)
     app.jinja_env.globals.update(serialize_json=json.dumps)
     app.jinja_env.globals.update(count_things=count_things)
+    app.jinja_env.globals.update(get_unique_gene_types=get_unique_gene_types)
     
     # Set up cache (object defined in helper.py)
     # cache.init_app(app, config=cache_config)

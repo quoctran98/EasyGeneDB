@@ -42,6 +42,18 @@ class Genome():
         if sequence is None:
             raise ValueError(f"Sequence not found for {chromosome}:{start_coord}-{end_coord}")
         return(sequence)
+    
+    def search(self, query, max_results=50):
+        """Search the genome for a gene symbol, gene name, or transcript accession"""
+        query = query.lower()
+        results = []
+        for gene in self.genes_table:
+            if query in gene["symbol"].lower() or query in gene["name"].lower():
+                if gene["type"] != "pseudogene":
+                    results.append(self.get_gene_by_symbol(gene["symbol"]))
+            if max_results > 0 and len(results) >= max_results:
+                break
+        return(results)
 
     @classmethod
     def load(cls, name):

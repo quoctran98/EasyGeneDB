@@ -37,6 +37,22 @@ def random_gene(genome_name):
     gene = random.choice([gene for gene in genome.genes_table if gene["type"] in allowed_types])
     return(redirect(url_for("main.browse", genome_name=genome_name, gene_symbol=gene["symbol"])))
 
+@main.route("/search/<genome_name>", methods=["GET"])
+def search(genome_name):
+    query = request.args.get("query")
+    genome = Genome.load(genome_name)
+    if query is None:
+        flash("No query provided", "alert-danger")
+        return(render_template("index.html"))
+    if len(query) < 3:
+        flash("Please provide a query with at least 3 characters", "alert-danger")
+        return(render_template("index.html"))
+    if genome is None:
+        flash("Genome not found", "alert-danger")
+        return(render_template("index.html"))
+    results = genome.search(query)
+    return(render_template("search.html", search_query=query, search_results=results))
+
 @main.route("/robots.txt")
 def robots():
     return(render_template("robots.txt"))

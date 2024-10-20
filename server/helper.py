@@ -40,6 +40,14 @@ scheduler = APScheduler()
 def format_number(number):
     return("{:,}".format(number))
 
+# Get all the gene types from a list of Gene objects
+# Mainly used in the search.html template
+def get_unique_gene_types(genes):
+    gene_types = set()
+    for gene in genes:
+        gene_types.add(gene.type)
+    return(gene_types)
+
 # Count things (like one would in a list comprehension of dicts) but for Jinja templates
 # This is such a bad name and explanation but it's fine.
 def count_things(list, attr, value):

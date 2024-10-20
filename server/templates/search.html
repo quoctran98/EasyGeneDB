@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="gets-blurred">
+
+<!-- Search Results -->
+
+<div class="row">
+  <div class="col-md-2"></div>
+
+  <div class="col-md-8">
+    <h2>Search Results for '{{ search_query }}'</h2>
+
+    <!-- DYNAMICALLY POPULATE CHECKBOXES -->
+    <div id="checkbox-filters">
+      <h4>Include results for:</h4>
+      <div class="input-group" id="search-filters">
+        {% for gene_type in get_unique_gene_types(search_results) %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="{{ gene_type }}" name="{{ gene_type }}" checked>
+            <label class="form-check-label" for="{{ gene_type }}">{{ gene_type }}</label>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <hr>
+
+    {% if search_results == [] %}
+      <p>No results found for '{{ search_query }}'.</p>
+    {% endif %}
+
+    {% for gene in search_results %}
+      <div class="search-result-box" id="{{ gene.symbol }}">
+        <div id="gene-data" style="display: none;">
+          {{ serialize_json(gene.summary_dict) | safe }}
+        </div>
+        <a href="{{ url_for('main.browse', genome_name='hg38', gene_symbol=gene.symbol) }}">
+          <h3>{{ gene.symbol }}</h3>
+          <p>{{ gene.name }} (Chr. {{ gene.locus[0] }}) ({{ gene.type }})</p>
+          <p>{{ gene.symbol }} encodes for {{ gene.transcripts|length }} transcript{{ "s" if gene.transcripts|length > 1 else "" }}.</p>
+        </a>
+      </div> 
+    {% endfor %}
+    
+
+</div>
+
+<!-- QUICK SCRIPT FOR THE SEARCH FILTERS -->
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    // If there's only one checkbox, disable #checkbox-filters child
+    if ($("#search-filters input").length == 1) {
+      $("#checkbox-filters h4").css("color", "gray");
+      $("#search-filters input").prop("disabled", true);
+    }
+
+    // Add an event listener to each checkbox in the search filters
+    $("#search-filters input").change(function() {
+
+      // Loop through each search result box to see if it should be hidden or shown
+      all_search_results = $(".search-result-box");
+      for (search_result of all_search_results) {
+        let gene_symbol = $(search_result).attr("id");
+        let gene_data = JSON.parse($(`#${gene_symbol} #gene-data`).text());
+        let gene_type = gene_data["type"];
+        console.log(gene_symbol, gene_type);
+
+        // Check if the gene type is in the search filters
+        const all_filter_names = $("#search-filters input").map(function() {return $(this).attr("id");}).get();
+        let show_gene = false;
+        
+        for (filter_name of all_filter_names) {
+          const checked = $("#" + filter_name).is(":checked");
+          if (gene_type == filter_name && checked) {
+            show_gene = true;
+            break;
+          }
+        }
+
+        // Show or hide the gene based on the search filters
+        // It's confusing but now "this" refers to the search result box
+        if (show_gene) {
+          $(search_result).show();
+        } else {
+          $(search_result).hide();
+        }
+      }
+    });
+  });
+
+</script>
+
+{% endblock %}

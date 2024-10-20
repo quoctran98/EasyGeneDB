@@ -16,9 +16,9 @@
 </div>
 
 <!-- GENE SUMMARY -->
-<div class="row">
+<!-- <div class="row">
     <p>This is a {{ gene.type }} gene</p>
-</div>
+</div> -->
 
 <hr>
 
@@ -155,12 +155,12 @@
 </div>
 </div>
 
-<hr>
+<br>
 
-<!-- LINKS TO OTHER GENOME BROWSERS -->
-<div class="row">
-    <p>View this gene in other genome browsers:</p>
-    <a href="https://www.ncbi.nlm.nih.gov/gene/{{ gene.ncbi_gene_id }}" target="_blank">&emsp;NCBI Gene</a>
+<!-- LINKS TO OTHER GENE DATABASES -->
+<div class="row" id="database-xrefs">
+    <p>View {{ gene.symbol }} in other databases:&emsp;</p>
+    <a href="https://www.ncbi.nlm.nih.gov/gene/{{ gene.ncbi_gene_id }}" target="_blank">NCBI Gene <i class="bi bi-box-arrow-up-right"></i></a>
 </div>
 
 <script src="{{ url_for('static', filename='js/browse_gene.js') }}"></script>

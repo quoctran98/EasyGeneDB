@@ -1,14 +1,56 @@
 /*
     This script is called in every page of the website.
     Use it to define functions that are used in multiple pages.
+    It also does a few things, especially for search bar stuff.
 */
+
+// Define a few divs
+SEARCH_BAR_FORM_DIVS = ["top-search-bar", "index-search-bar"]; // Index search bar might not exist
 
 // Initialize some stuff :)
 $(document).ready(function() {
+
+    // Toggle all Bootstrap tooltips
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
     })
+
+    // Add an event listener to the <input> elements within the search bar forms
+    for (let div_id of SEARCH_BAR_FORM_DIVS) {
+        $(`#${div_id} input`).on("input", function() {
+            update_datalist(this);
+        });
+    }
+
 });
+
+// Update the datalist of a search bar using an api call to the server
+async function update_datalist(search_bar) {
+    const query = $(search_bar).val();
+
+    // Get the genome name from the gene-data div (if it exists, otherwise default to "hg38")
+    let genome_name;
+    if ($("#gene-data").length === 0) {
+        genome_name = "hg38";
+    } else {
+        genome_name = JSON.parse($("#gene-data").text()).genome;
+    }
+    const url = `/api/dynamic_search/${genome_name}?query=${query}`;
+
+    if (query.length > 2) {
+        let response = await fetch(url);
+        let data = await response.json(); // One big object (keys are gene symbols, values are gene names)
+
+        const datalist_id = $(search_bar).attr("list");
+        let datalist = $(`#${datalist_id}`);
+        datalist.empty();
+        for (let symbol in data) {
+            let new_option = $(`<option value="${symbol}">${data[symbol]}</option>`);
+            datalist.append(new_option);
+        }
+    }
+}
+
 
 // Function to copy the sequence child of a parent div to the clipboard
 function copy_sequence(event, parent_div_id) {
@@ -44,18 +86,9 @@ function set_many_attributes(element, attributes) {
     // No need to return anything, the element is modified in place :)
 }
 
-// Call this function to close all modals
-function close_all_modals() {
-    let modals = document.getElementsByClassName("modal");
-    for (let i = 0; i < modals.length; i++) {
-        modals[i].style.display = "none";
-    }
-    unblur_background();
-}
-
 // Call blur_background() when any modals are opened
 function blur_background() {
-    let to_blur = document.getElementsByClassName("gets-blurred");
+    let to_blur = $(".gets-blurred");
     for (let i = 0; i < to_blur.length; i++) {
         to_blur[i].style = `
             -webkit-filter: blur(5px);
@@ -69,7 +102,7 @@ function blur_background() {
 
 // Call unblur_background() when any modals are closed
 function unblur_background() {
-    let to_unblur = document.getElementsByClassName("gets-blurred");
+    let to_unblur = $(".gets-blurred");
     for (let i = 0; i < to_unblur.length; i++) {
         to_unblur[i].style = `
             -webkit-filter: blur(0px);

@@ -1,0 +1,8 @@
+.env
+**/.DS_Store
+**/__pycache__/
+**.ipynb
+NOTES.md
+/server/data/
+/hg38_from_ncbi/
+.git

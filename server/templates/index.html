@@ -4,28 +4,58 @@
 
 <div class="gets-blurred">
 
-<div class="alert alert-success" role="alert">
-  Hi, thanks for using Easy Genome Browser!
-  You can open an issue on <a href="https://github.com/quoctran98/Wiki-Wall-Street" target="_blank" rel="noopener noreferrer">GitHub</a> 
+<!-- <div class="alert alert-success" role="alert">
+  Hi, thanks for using EasyGeneDB!
+  You can open an issue on <a href="https://github.com/quoctran98/EasyGeneDB" target="_blank" rel="noopener noreferrer">GitHub</a> 
   or contact me.  - Quoc 
-</div>
+</div> -->
 
 <!-- BIG SEARCH BAR -->
-<div class="input-group mb-3">
-  <input type="text" class="form-control" placeholder="Search for a gene..." aria-label="Search for a gene..." aria-describedby="search-button">
-  <button class="btn btn-outline-secondary" type="button" id="search-button">Search</button>
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <h1 class="text-center">Welcome to EasyGeneDB!</h1>
+    <p class="text-center">Search for a gene to get started. Or click the dice to get a random gene.</p>
+
+      <form class="input-group mb-3" action="{{ url_for('main.search', genome_name='hg38') }}" method="GET" id="index-search-bar">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search for a gene..." name="query" list="index-search-list">
+          <datalist id="index-search-list"></datalist>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+          <a href="{{ url_for('main.random_gene', genome_name='hg38') }}" style="float: right;">
+              <button type="button" class="btn btn-primary" style="margin-left: 10px;"><i class="bi bi-dice-6"></i></button>
+          </a>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+  <div class="col-md-2"></div>
 </div>
+
 
 <hr>
 
-<!-- GAME EXPLANATION -->
-<div class="alert alert-info" style="color: black;">
-  <a data-toggle="collapse" href="#game-explainer" style="color: inherit; text-decoration: inherit;">
-    <h2>What is this game?</h2>
-  </a>
+<!-- SITE EXPLANATION -->
+<div style="color: black;">
+    <h2>What is this?</h2>
 
-  <div id="game-explainer" class="collapse show inner-collapse">
-  </div>
+    <p>So, the other week, I was writing a problem for the class that I was TA'ing,
+      and I needed to get the spliced transcript of GAPDH so students could write a script
+      to translate it to an amino acid sequence, but that's beside the point. So anyways,
+      I popped on over to NCBI and typed "GAPDH" into the search bar, and I clicked on the
+      first thing that showed up. It was the NCBI Gene page for GAPDH which made sense, but
+      it quickly became too complicated to look for a transcript. And even when I did, it took
+      me somewhere else, and I wasn't sure if it was like pre-mRNA or spliced or just the CDS or what. </p>
+
+    <p>I got really frustrated and made this. It uses sequence information from the <b>GRCh38.p14 assembly</b> 
+      of the human genome and annotations from <b>NCBI's RefSeq</b> to provide a simple interface 
+      to look up genes, transcripts, and their sequences. There's also a random gene button that's fun to use. </p>
+
+    <p>Anyways, if you have any questions or issues with the site, feel free to open an issue on the 
+      <a href="https://github.com/quoctran98/EasyGeneDB/issues" target="_blank" rel="noopener noreferrer">GitHub page</a> or contact me. </p>
+
 </div>
 
 </div>

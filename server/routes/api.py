@@ -18,10 +18,16 @@ def get_transcripts(genome, gene_symbol, transcript_accession=None):
         return(jsonify({"error": "Transcript not found"}), 404)
     return(jsonify(transcript.summary_dict()))
     
-@api.route("/api/search/<genome>/<query>")
-def search(genome, query):
-    genome = Genome.load(genome)
+@api.route("/api/dynamic_search/<genome_name>/")
+def dynamic_search(genome_name):
+    query = request.args.get("query")
+    genome = Genome.load(genome_name)
+    if query is None:
+        return(jsonify({"error": "No query provided"}), 400)
+    if len(query) < 3:
+        return(jsonify({"error": "Please provide a query with at least 3 characters"}), 400)
     if genome is None:
         return(jsonify({"error": "Genome not found"}), 404)
     results = genome.search(query)
-    return(jsonify(results))
+    summarized_results = {gene.symbol: gene.name for gene in results}
+    return(jsonify(summarized_results))

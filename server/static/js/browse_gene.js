@@ -1,6 +1,6 @@
 // Div IDs
-const GENE_MAP = "gene-map";
-const SEQUENCES_LIST = "sequences-list";
+const GENE_MAP = "gene-map"; // Info passed in from the server
+const SEQUENCES_LIST = "sequences-list"; // Info passed in from the server
 
 const TRANSCRIPT_COUNT = "transcript-count";
 const ALLOW_NON_REFSEQ = "non-refseq";
@@ -12,6 +12,8 @@ const PRE_RNA_SEQ_DIV = "pre-rna-sequence";
 const SPLICED_RNA_SEQ_DIV = "spliced-rna-sequence";
 const CODING_RNA_SEQ_DIV = "coding-rna-sequence";
 const PROTEIN_SEQ_DIV = "protein-sequence";
+
+const DB_XREFS_DIV = "database-xrefs";
 
 // Pre-written tooltips for stuff
 const REFSEQ_TOOLTIP = "RefSeq is a curated database of non-redundant of genomic, transcriptomic, and proteomic sequences run by the NCBI.";
@@ -314,13 +316,7 @@ async function load_transcript(transcript_id) {
                         <td>${formatted_source}</td>
                     </tr>
                 `);
-                // I don't think we need this anymore because we explain it in the source field
-                // $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
-                //     <tr>
-                //         <td>Curation Status</td>
-                //         <td>${transcript_data.ncbi_accession.startsWith("N") ? "Curated" : "Predicted"}</td>
-                //     </tr>
-                // `);
+
                 $(`#${TRANSCRIPT_INFO_TABLE}`).append(`
                     <tr>
                         <td>Transcript Type</td>
@@ -330,6 +326,30 @@ async function load_transcript(transcript_id) {
 
                 // Remember to enable the tooltips after we add the elements
                 $('[data-toggle="tooltip"]').tooltip();
+
+                // Database xrefs are by transcript not gene, so update them here :)
+                // Clear the old database xrefs div (except for the first 2 elements)
+                const remember_these = $(`#${DB_XREFS_DIV}`).children().slice(0, 2);
+                $(`#${DB_XREFS_DIV}`).empty();
+                $(`#${DB_XREFS_DIV}`).append(remember_these);
+                for (let db_key in transcript_data.xrefs) {
+                    if (db_key == "HGNC") {
+                        $(`#${DB_XREFS_DIV}`).append(`
+                            &emsp;<a href="https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${transcript_data.xrefs[db_key]}" target="_blank">HGNC <i class="bi bi-box-arrow-up-right"></i></a>
+                        `);
+                    }
+                    if (db_key == "MIM") {
+                        $(`#${DB_XREFS_DIV}`).append(`
+                            &emsp;<a href="https://www.omim.org/entry/${transcript_data.xrefs[db_key]}" target="_blank">OMIM <i class="bi bi-box-arrow-up-right"></i></a>
+                        `);
+                    }
+                    if (db_key == "Ensembl") {
+                        const ensembl_id = transcript_data.xrefs[db_key].split(".")[0];
+                        $(`#${DB_XREFS_DIV}`).append(`
+                            &emsp;<a href="https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${ensembl_id}" target="_blank">Ensembl <i class="bi bi-box-arrow-up-right"></i></a>
+                        `);
+                    }
+                }
 
                 // Normalize the annotations and draw the gene map
                 const normalized_annotations = reindex_transcript_annotations(gene_data, transcript_data, true);
@@ -390,8 +410,8 @@ function update_transcript_list(gene_data, transcripts, force_main_variant=false
         // Set the previously-selected transcript if it's still in the list
         $(`#${ALL_TRANSCRIPTS}`).val(prev_transcript);
     } else {
-        // Otherwise, select the first transcript in the list
-        $(`#${ALL_TRANSCRIPTS}`).val(filtered_transcripts[0].ncbi_accession);
+        // Otherwise, select the shortest transcript name in the list (I'm smart)
+        $(`#${ALL_TRANSCRIPTS}`).val(filtered_transcripts.sort((a, b) => a.product.length - b.product.length)[0].ncbi_accession);
     }
 
 }
@@ -414,11 +434,16 @@ $(document).ready(function() {
     });
 
     // Disable the non-RefSeq checkbox if there are no non-RefSeq transcripts
-    // I worry that doing this might be confusing without telling the user why... (maybe a tooltip?)
     const non_refseq_transcripts = transcripts.filter(transcript => transcript.source !== "BestRefSeq" && transcript.source !== "RefSeq");
     if (non_refseq_transcripts.length === 0) {
         $(`#${ALLOW_NON_REFSEQ}`).prop("disabled", true);
         $(`#${ALLOW_NON_REFSEQ}`).prop("checked", false);
+        // Let's add a tooltip to the label (next element) explain why it's disabled
+        set_many_attributes($(`#${ALLOW_NON_REFSEQ}`)[0].nextElementSibling, {
+            "data-toggle": "tooltip",
+            "data-placement": "right",
+            "title": "Only RefSeq transcripts are available for this gene.",
+        });
     }
 
     // Finally, update the transcript list on document load (to preselect the first transcript)

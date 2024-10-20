@@ -2,6 +2,26 @@
 .table .text-left {text-align: left}
 .table .text-center {text-align: center}
 
+.search-result-box {
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.search-result-box:hover {
+    background-color: #f8f9fa;
+}
+
+.search-result-box>a {
+    color: #000000;
+    text-decoration: none;
+}
+
+.search-result-box>a:hover {
+    color: #000000;
+}
+
 .gene-map {
     padding: 0rem
 }
