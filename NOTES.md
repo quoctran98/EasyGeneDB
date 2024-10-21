@@ -22,6 +22,7 @@ We have to do it this way because of: https://stackoverflow.com/questions/628859
 5. Pull the image remote: `docker pull quoctran98/easygenedb:[arm64/amd64]`
 6. Transfer the .env file to the server using `scp` or something
 7. Run the image (remember to mount the data!): `docker run -d -p 8000:8000 -v ./server/data:/server/server/data:ro --name easygenedb --env-file .env quoctran98/easygenedb:[arm64/amd64]` (I had the problem with the nested /server/server/ thing, so we're just going to have to live with it for now)
+    - To make limit the container's memory, add `--restart unless-stopped --memory 1536m` to the command above
 
 
 ### "Database" Structure:
