@@ -6,3 +6,5 @@ NOTES.md
 /server/data/
 /hg38_from_ncbi/
 .git
+*.afdesign
+*.zip

@@ -11,8 +11,8 @@ def order_bounds(bounds: list):
 
 def reverse_complement(sequence: str, rna: bool = False):
     """Get the reverse complement of a DNA or RNA sequence"""
-    complement = {"A": "T", "T": "A", "C": "G", "G": "C",
-                  "a": "t", "t": "a", "c": "g", "g": "c"}
+    complement = {"A": "T", "T": "A", "C": "G", "G": "C", "N": "N",
+                  "a": "t", "t": "a", "c": "g", "g": "c", "n": "n"}
     if rna:
         complement["U"] = "A"
         complement["u"] = "a"
